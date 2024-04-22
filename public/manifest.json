@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "NowChat App",
+  "name": "a chat test app for Now Optics",
   "icons": [
     {
       "src": "favicon.ico",

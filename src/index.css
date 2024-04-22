@@ -11,3 +11,10 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.alert-wrapper {
+  position: absolute !important;
+  top: 100px;
+  right: 40px;
+  z-index: 10;
+}
