@@ -178,7 +178,7 @@ function Users() {
     return (
         <div className="container-fluid">
             <div className="container pt-5 text-center">
-                <h1>Now Chat App</h1>
+                <h1>NowChat App</h1>
                 <p>All the users in the app</p>
                 <div className="alert-wrapper">
                     {successMsg &&
@@ -192,7 +192,6 @@ function Users() {
                         </Alert>
                     }
                 </div>
-                
             </div>
             <div className="row">
                 <div className="col">
