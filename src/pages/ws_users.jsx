@@ -1,9 +1,8 @@
-import axios from "axios";
 import {useState, useEffect} from "react";
 import Alert from 'react-bootstrap/Alert';
 
 
-function Users() {
+function WSUsers() {
 
     const baseUrl                       = 'http://localhost:5000/users';
     const [users, setUsers]             = useState([]);
@@ -15,20 +14,43 @@ function Users() {
     const [isEdit, setIsEdit]           = useState(false);
     const [successMsg, setSuccessMsg]   = useState(null);
     const [errorMsg, setErrorMsg]       = useState(null);
+    const socket                        = new WebSocket('ws://localhost:8080');
 
     // Fetch all todos on page load or component mounted
     useEffect(() => {
+
+        function websocketConnection() {
+            socket.onopen = () => {
+                console.log('WebSocket connection established.');
+
+                const message = {
+                    type: "All",
+                    data: "Users",
+                }
+                socket.send(JSON.stringify(message));
+            };
+    
+            socket.onmessage = (event) => {
+                console.log(event.data);
+            };
+    
+            return () => {
+                socket.close();
+            };
+        }
+
         // Fetch all users
         const getUsers = async () => {
             try {
-                // Fetch data from backend
-                const response = await axios.get(`${baseUrl}`);
+                //     // Fetch data from backend
+                
+                
 
-                // Set users data to users state
-                setUsers(response.data.data);
+            //     // Set users data to users state
+            //     setUsers(response.data.data);
 
-                // Show success message
-                setSuccessMsg(response.data.message);
+            //     // Show success message
+            //     setSuccessMsg(response.data.message);
             } catch (error) {
                 console.log(error.response);
 
@@ -39,7 +61,8 @@ function Users() {
                 hideMsg();
             }
         };
-
+        
+        websocketConnection();
         getUsers();
     }, []);
 
@@ -55,29 +78,29 @@ function Users() {
     const addUserHandler = async (e) => {
         // Prevent default form submission
         e.preventDefault();
-        try {
-            // Send post request to backend by sending the data
-            const response = await axios.post(`${baseUrl}`, {username, name, email});
+        // try {
+        //     // Send post request to backend by sending the data
+        //     const response = await axios.post(`${baseUrl}`, {username, name, email});
 
-            // Add new user and update users state
-            setUsers([...users, response.data.data]);
+        //     // Add new user and update users state
+        //     setUsers([...users, response.data.data]);
 
-            // Reset todo form
-            setEmail('');
-            setName('');
-            setUsername('');
-            setTitle('Add User');
+        //     // Reset todo form
+        //     setEmail('');
+        //     setName('');
+        //     setUsername('');
+        //     setTitle('Add User');
 
-            // Show success message
-            setSuccessMsg(response.data.message);
-        } catch (error) {
-            console.log(error.response);
-            // Show error message
-            setErrorMsg(error.response.data.message);
-        } finally {
-            // Hide success/error message after 5 seconds
-            hideMsg();
-        }
+        //     // Show success message
+        //     setSuccessMsg(response.data.message);
+        // } catch (error) {
+        //     console.log(error.response);
+        //     // Show error message
+        //     setErrorMsg(error.response.data.message);
+        // } finally {
+        //     // Hide success/error message after 5 seconds
+        //     hideMsg();
+        // }
     };
 
     // Edit user
@@ -94,66 +117,66 @@ function Users() {
     // Update user
     const updateUserHandler = async (e) => {
         // Prevent default form submission
-        e.preventDefault();
-        try {
-            // Send put request to backend by sending User's data
-            const response = await axios.put(`${baseUrl}/${userId}`, {username, name, email});
+        // e.preventDefault();
+        // try {
+        //     // Send put request to backend by sending User's data
+        //     const response = await axios.put(`${baseUrl}/${userId}`, {username, name, email});
         
-            // Update user in Users state
-            const updatedUsers = users.map(user => {
-                if (user.id === userId) {
-                    user.username     = username;
-                    user.name         = name;
-                    user.email         = email;
-                }
-                return user;
-            });
+        //     // Update user in Users state
+        //     const updatedUsers = users.map(user => {
+        //         if (user.id === userId) {
+        //             user.username     = username;
+        //             user.name         = name;
+        //             user.email         = email;
+        //         }
+        //         return user;
+        //     });
         
-            // Update todos state
-            setUsers(updatedUsers);
+        //     // Update todos state
+        //     setUsers(updatedUsers);
         
-            // Reset todo form
-            setUsername('');
-            setName('');
-            setEmail('');
-            setTitle('Add User');
-            setUserId(null);
-            setIsEdit(false);
+        //     // Reset todo form
+        //     setUsername('');
+        //     setName('');
+        //     setEmail('');
+        //     setTitle('Add User');
+        //     setUserId(null);
+        //     setIsEdit(false);
         
-            // Show success message
-            setSuccessMsg(response.data.message);
-        } catch (error) {
-            console.log(error.response);
-            // Show error message
-            setErrorMsg(error.response.data.message);
-        } finally {
-            // Hide success/error message after 5 seconds
-            hideMsg();
-        }
+        //     // Show success message
+        //     setSuccessMsg(response.data.message);
+        // } catch (error) {
+        //     console.log(error.response);
+        //     // Show error message
+        //     setErrorMsg(error.response.data.message);
+        // } finally {
+        //     // Hide success/error message after 5 seconds
+        //     hideMsg();
+        // }
     };
 
     // Delete User
     const deleteUserHandler = async (id) => {
-        try {
-            // Send delete request to backend
-            const response      = await axios.delete(`${baseUrl}/${id}`);
+        // try {
+        //     // Send delete request to backend
+        //     const response      = await axios.delete(`${baseUrl}/${id}`);
         
-            // Remove user from Users state
-            const filteredUsers = users.filter(user => user.id !== id);
+        //     // Remove user from Users state
+        //     const filteredUsers = users.filter(user => user.id !== id);
         
-            // Update Users state
-            setUsers(filteredUsers);
+        //     // Update Users state
+        //     setUsers(filteredUsers);
         
-            // Show success message
-            setSuccessMsg(response.data.message);
-        } catch (error) {
-            console.log(error.response);
-            // Show error message
-            setErrorMsg(error.response.data.message);
-        } finally {
-            // Hide success/error message after 5 seconds
-            hideMsg();
-        }
+        //     // Show success message
+        //     setSuccessMsg(response.data.message);
+        // } catch (error) {
+        //     console.log(error.response);
+        //     // Show error message
+        //     setErrorMsg(error.response.data.message);
+        // } finally {
+        //     // Hide success/error message after 5 seconds
+        //     hideMsg();
+        // }
     };
 
     // Submit handler
@@ -290,4 +313,4 @@ function Users() {
     );
 }
 
-export default Users;
+export default WSUsers;

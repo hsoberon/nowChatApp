@@ -1,0 +1,14 @@
+.chat {
+    max-height: 20rem;
+    overflow: scroll;
+}
+
+.chat h5 small {
+    font-size: 0.7em;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+
+.chat h5:hover small {
+    opacity: 1;
+}

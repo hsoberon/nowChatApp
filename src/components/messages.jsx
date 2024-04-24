@@ -1,4 +1,6 @@
 import {Card, Badge} from 'react-bootstrap';
+import { useRef, useEffect } from 'react';
+import './messages.css';
 
 
 const Messages = (props) => {
@@ -7,29 +9,36 @@ const Messages = (props) => {
 
     const firstUser = props.firstUser;
 
-    function MessageText ({index, text, from_id, time}) {
-        console.log(index + ': ' + time);
-        if(from_id == firstUser){
+    const AlwaysScrollToBottom = () => {
+        const elementRef = useRef();
+        useEffect(() => elementRef.current.scrollIntoView({behavior: 'smooth'}));
+        return <div ref={elementRef} />;
+    };
+
+    function MessageText ({text, from_id, time}) {
+        const hmTime = new Date(time).toLocaleString();
+        if(from_id === parseInt(firstUser)){
             return <h5>
-                <Badge size="lg" bg="primary">{text}</Badge> <span>{time}</span>
+                <Badge size="lg" bg="primary">{text}</Badge> <small className='text-secondary'>{hmTime}</small> 
             </h5>
         }else{
             return <h5 className="text-end">
-                <Badge size="lg" bg="success">{text}</Badge>
+                <small className='text-secondary'>{hmTime}</small> <Badge size="lg" bg="success">{text}</Badge>
             </h5>
         }
     }
 
     return (
-        <Card className="mt-4 bg-secondary text-white">
+        <Card className="my-4 bg-secondary text-white">
             <Card.Body>
                 <Card.Title className="text-center">
                     List of messages
                 </Card.Title>
-                <div className="bg-white p-3">
+                <div className="chat bg-white p-3">
                     {props.listMessages.map((chat, index) => (
                        <MessageText key={index} index={index} text={chat.message} from_id={chat.from_id} time={chat.created} ></MessageText> 
                     ))}
+                    <AlwaysScrollToBottom />
                 </div>
             </Card.Body>
         </Card>

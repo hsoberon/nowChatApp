@@ -1,61 +1,71 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import useWebSocket from "react-use-websocket"
+import axios from "axios";
+import {useState, useEffect} from "react";
 import Messages from '../components/messages'; 
 import {Alert, Form, Row, Col, Button} from 'react-bootstrap';
 
-function WSChat() {
-    const baseUrl                       = 'ws://127.0.0.1:8080';
+function Chat() {
+
+    const baseUrl                       = 'http://localhost:5000';
     const [users, setUsers]             = useState([]);
     const [chat, setChat]               = useState([]);
-    const [userFrom, setUserFrom]       = useState(null);
-    const [userTo, setUserTo]           = useState(null);
+    const [userFrom, setUserFrom]       = useState();
+    const [userTo, setUserTo]           = useState();
     const [successMsg, setSuccessMsg]   = useState(null);
     const [errorMsg, setErrorMsg]       = useState(null);
 
-    const { sendJsonMessage, lastJsonMessage } = useWebSocket(baseUrl, {
-        share: true,
-    });
-    
-    const connected = useMemo(() => {
-        sendJsonMessage({
-            type: "GET",
-            message: "Users",
-        });
-      }, [sendJsonMessage]);
-
-    useEffect(() => {
-        console.log(connected);
-    }, [connected]);
-
-    useEffect(() => {
-        if(lastJsonMessage?.success){
-            if(lastJsonMessage.type === 'Users'){
-                setUsers(lastJsonMessage.data);
-                console.log('Users: ' + lastJsonMessage.data.length);
-            }
-            if(lastJsonMessage.type === 'Chat'){
-                setChat(lastJsonMessage.data);
-                console.log(lastJsonMessage.message);
-            }
-        }else if(lastJsonMessage?.message){
-            //Error
-            setErrorMsg('ERROR:' + lastJsonMessage.message);
+    // Fetch all users
+    const getMessages = async () => {
+        try {
+            // Fetch messages from backend
+            const response = await axios.get(`${baseUrl}/messages/${userFrom}/${userTo}`);
+            setChat(response.data.data);
+            setSuccessMsg(response.data.message);
+        } catch (error) {
+            console.log(error.response);
+            setErrorMsg(error.response.data.message);
+        } finally {
             hideMsg();
         }
-    }, [lastJsonMessage]);
+    };
 
     useEffect(() => {
         if(userFrom && userTo ){
             console.log("Selected Frist User: " + userFrom);
             console.log("Selected Second User: " + userTo);
-            sendJsonMessage({
-                type: "GET",
-                userFrom,
-                userTo,
-                message: "Chat",
-            });
+            getMessages();
         }
-    }, [userFrom, userTo, sendJsonMessage]);
+    }, [userFrom, userTo]);
+
+
+
+    // Fetch all todos on page load or component mounted
+    useEffect(() => {
+        // Fetch all users
+        const getUsers = async () => {
+            console.log("Getting users");
+            try {
+                // Fetch data from backend
+                const response = await axios.get(`${baseUrl}/users`);
+
+                // Set users data to users state
+                setUsers(response.data.data);
+
+                // Show success message
+                setSuccessMsg(response.data.message);
+            } catch (error) {
+                console.log(error.response);
+
+                // Show error message
+                setErrorMsg(error.response.data.message);
+            } finally {
+                // Hide success/error message after 5 seconds
+                hideMsg();
+            }
+        };
+        
+        getUsers();
+    }, []);
+
 
     // Hide success/error message after 5 seconds
     const hideMsg = () => {
@@ -69,7 +79,7 @@ function WSChat() {
         event.preventDefault();
         const from_id = event.target.from_id.value;
         const text = event.target.text.value;
-        const to_id = (from_id === userFrom) ? userTo : userFrom;
+        const to_id = (from_id == userFrom) ? userTo : userFrom;
 
         if(!userTo || !userFrom){
             setErrorMsg("Debes seleccionar un usuario primero");
@@ -77,22 +87,36 @@ function WSChat() {
             return;
         }
 
-        if(text === ""){
+        if(text == ""){
             setErrorMsg("Mensaje Vacío");
             hideMsg();
             return;
         }
 
-        sendJsonMessage({
-            type: "SEND Message",
-            userFrom: from_id,
-            userTo: to_id,
-            message: text,
-        });
+        try {
+            // Send post request to backend by sending the data
+            const response = await axios.post(`${baseUrl}/messages`, {from_id, to_id, text});
 
-        //reset the text message field
-        event.target.text.value = '';
-    };
+            // Update the messages
+            getMessages();
+
+            //reset the text message field
+            event.target.text.value = '';
+
+            // Show success message
+            setSuccessMsg(response.data.message);
+        } catch (error) {
+            console.log(error.response);
+            // Show error message
+            setErrorMsg(error.response.data.message);
+        } finally {
+            // Hide success/error message after 5 seconds
+            hideMsg();
+        }
+    }
+
+    
+    
 
     return (
         <div className="container-fluid">
@@ -167,4 +191,4 @@ function WSChat() {
     );
 }
 
-export default WSChat;
+export default Chat;
