@@ -1,13 +1,66 @@
 import {Card, Badge} from 'react-bootstrap';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
+import useWebSocket from "react-use-websocket"
 import './messages.css';
 
 
 const Messages = (props) => {
 
-    console.log("Printing chat");
+    console.log('Rendering Chat');
 
-    const firstUser = props.firstUser;
+    const fromID = props.userFrom;
+    const toID = props.userTo;
+
+    const onError = props.onError;
+    const onSuccess = props.onSuccess;
+    const hide = props.hide;
+
+    const baseUrl                       = 'ws://127.0.0.1:8080/';
+    const [chat, setChat]               = useState([]);
+
+    const {sendJsonMessage, lastJsonMessage } = useWebSocket(baseUrl, {
+        queryParams: { userFrom: fromID, userTo: toID},
+        share: false,
+    });
+
+    
+
+    useEffect(() => {
+        console.log("From: " + fromID + ' To: ' + toID);
+
+        sendJsonMessage({
+            type: "GET",
+            message: "Chat",
+        });
+    }, [sendJsonMessage, fromID, toID]);
+
+    // useEffect(() => {
+              
+        
+    //     console.log("From: " + fromID.current + ' To: ' + props.userTo);
+
+    //     sendJsonMessage({
+    //         type: "GET",
+    //         message: "Chat",
+    //     });
+
+        
+    //   }, [fromID.current]);
+
+    useEffect(() => {
+        if(lastJsonMessage?.success){
+            if(lastJsonMessage.type === 'Chat'){
+                setChat(lastJsonMessage.data);
+                console.log(lastJsonMessage.message);
+            }
+        }else if(lastJsonMessage?.message){
+            //Error
+            onError('ERROR:' + lastJsonMessage.message);
+            hide();
+        }
+    }, [lastJsonMessage, onError, hide]);
+
+
 
     const AlwaysScrollToBottom = () => {
         const elementRef = useRef();
@@ -17,7 +70,7 @@ const Messages = (props) => {
 
     function MessageText ({text, from_id, time}) {
         const hmTime = new Date(time).toLocaleString();
-        if(from_id === parseInt(firstUser)){
+        if(from_id === parseInt(fromID)){
             return <h5>
                 <Badge size="lg" bg="primary">{text}</Badge> <small className='text-secondary'>{hmTime}</small> 
             </h5>
@@ -35,8 +88,8 @@ const Messages = (props) => {
                     List of messages
                 </Card.Title>
                 <div className="chat bg-white p-3">
-                    {props.listMessages.map((chat, index) => (
-                       <MessageText key={index} index={index} text={chat.message} from_id={chat.from_id} time={chat.created} ></MessageText> 
+                    {chat.map((chat, index) => (
+                       <MessageText key={index} text={chat.message} from_id={chat.from_id} time={chat.created} ></MessageText> 
                     ))}
                     <AlwaysScrollToBottom />
                 </div>

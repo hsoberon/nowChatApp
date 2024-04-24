@@ -1,20 +1,22 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import useWebSocket from "react-use-websocket"
+import useWebSocket from "react-use-websocket";
 import Messages from '../components/messages'; 
 import {Alert, Form, Row, Col, Button} from 'react-bootstrap';
 
 function WSChat() {
     const baseUrl                       = 'ws://127.0.0.1:8080';
     const [users, setUsers]             = useState([]);
-    const [chat, setChat]               = useState([]);
+    // const [chat, setChat]               = useState([]);
     const [userFrom, setUserFrom]       = useState(null);
     const [userTo, setUserTo]           = useState(null);
     const [successMsg, setSuccessMsg]   = useState(null);
     const [errorMsg, setErrorMsg]       = useState(null);
 
     const { sendJsonMessage, lastJsonMessage } = useWebSocket(baseUrl, {
-        share: true,
+        share: false,
     });
+
+    var count = 0;
     
     const connected = useMemo(() => {
         sendJsonMessage({
@@ -33,10 +35,10 @@ function WSChat() {
                 setUsers(lastJsonMessage.data);
                 console.log('Users: ' + lastJsonMessage.data.length);
             }
-            if(lastJsonMessage.type === 'Chat'){
-                setChat(lastJsonMessage.data);
-                console.log(lastJsonMessage.message);
-            }
+            // if(lastJsonMessage.type === 'Chat'){
+            //     setChat(lastJsonMessage.data);
+            //     console.log(lastJsonMessage.message);
+            // }
         }else if(lastJsonMessage?.message){
             //Error
             setErrorMsg('ERROR:' + lastJsonMessage.message);
@@ -44,18 +46,13 @@ function WSChat() {
         }
     }, [lastJsonMessage]);
 
-    useEffect(() => {
-        if(userFrom && userTo ){
-            console.log("Selected Frist User: " + userFrom);
-            console.log("Selected Second User: " + userTo);
-            sendJsonMessage({
-                type: "GET",
-                userFrom,
-                userTo,
-                message: "Chat",
-            });
-        }
-    }, [userFrom, userTo, sendJsonMessage]);
+    // useEffect(() => {
+    //     if(userFrom && userTo ){
+    //         console.log("Selected Frist User: " + userFrom);
+    //         console.log("Selected Second User: " + userTo);
+            
+    //     }
+    // }, [userFrom, userTo]);
 
     // Hide success/error message after 5 seconds
     const hideMsg = () => {
@@ -162,7 +159,9 @@ function WSChat() {
                     </Form>
                 </div>
             </div>
-            <Messages listMessages={chat} firstUser={userFrom}></Messages>
+            {userFrom && userTo && 
+                <Messages userFrom={userFrom} userTo={userTo} onSuccess={setSuccessMsg} onError={setErrorMsg} hide={hideMsg}></Messages>
+            }
         </div>
     );
 }
