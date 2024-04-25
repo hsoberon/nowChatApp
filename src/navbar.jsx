@@ -19,6 +19,9 @@ function Navbar() {
                     <li className="nav-item">
                         <Link to="/chat" className="nav-link">Chat</Link>
                     </li>
+                    <li className="nav-item">
+                        <Link to="/video" className="nav-link">Video</Link>
+                    </li>
                 </ul>
             </div>
             <div className="ms-auto">

@@ -16,6 +16,10 @@ function Home() {
                     <h3>Beggin to Chat</h3>
                     <Link to="/chat" className="btn btn-success mt-3">Start Chat</Link>
                 </div>
+                <div className="col text-center">
+                    <h3>Start VideoCall</h3>
+                    <Link to="/video" className="btn btn-warning mt-3">Start VideoCall</Link>
+                </div>
             </div>
         </div>        
     );
