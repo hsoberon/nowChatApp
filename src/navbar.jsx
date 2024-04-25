@@ -17,9 +17,6 @@ function Navbar() {
                         <Link to="/users" className="nav-link">Users</Link>
                     </li>
                     <li className="nav-item">
-                        <Link to="/wsusers" className="nav-link">WS Users</Link>
-                    </li>
-                    <li className="nav-item">
                         <Link to="/chat" className="nav-link">Chat</Link>
                     </li>
                 </ul>
