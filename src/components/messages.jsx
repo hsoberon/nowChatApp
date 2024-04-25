@@ -1,5 +1,5 @@
 import {Card, Badge} from 'react-bootstrap';
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import useWebSocket from "react-use-websocket"
 import './messages.css';
 
@@ -12,7 +12,6 @@ const Messages = (props) => {
     const toID = props.userTo;
 
     const onError = props.onError;
-    const onSuccess = props.onSuccess;
     const hide = props.hide;
 
     const baseUrl                       = 'ws://127.0.0.1:8080/';
@@ -33,19 +32,6 @@ const Messages = (props) => {
             message: "Chat",
         });
     }, [sendJsonMessage, fromID, toID]);
-
-    // useEffect(() => {
-              
-        
-    //     console.log("From: " + fromID.current + ' To: ' + props.userTo);
-
-    //     sendJsonMessage({
-    //         type: "GET",
-    //         message: "Chat",
-    //     });
-
-        
-    //   }, [fromID.current]);
 
     useEffect(() => {
         if(lastJsonMessage?.success){
