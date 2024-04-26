@@ -1,11 +1,11 @@
-import axios from "axios";
-import {useState, useEffect} from "react";
+import {useState, useEffect, useRef} from "react";
 import Alert from 'react-bootstrap/Alert';
+import io from "socket.io-client";
 
 
 function Users() {
 
-    const baseUrl                       = 'http://localhost:5000/users';
+    const baseUrl                       = 'ws://localhost:5000';
     const [users, setUsers]             = useState([]);
     const [name, setName]               = useState('');
     const [email, setEmail]             = useState('');
@@ -15,32 +15,56 @@ function Users() {
     const [isEdit, setIsEdit]           = useState(false);
     const [successMsg, setSuccessMsg]   = useState(null);
     const [errorMsg, setErrorMsg]       = useState(null);
+    const socketRef = useRef();
 
-    // Fetch all todos on page load or component mounted
+    // Fetch all users on page load or component mounted
     useEffect(() => {
-        // Fetch all users
-        const getUsers = async () => {
-            try {
-                // Fetch data from backend
-                const response = await axios.get(`${baseUrl}`);
 
-                // Set users data to users state
-                setUsers(response.data.data);
+        socketRef.current = io.connect(baseUrl);
 
-                // Show success message
-                setSuccessMsg(response.data.message);
-            } catch (error) {
-                console.log(error.response);
+        
+        const initialSetup = async () => {
+            // Fetch all users
+            socketRef.current.emit("users");
 
-                // Show error message
-                setErrorMsg(error.response.data.message);
-            } finally {
-                // Hide success/error message after 5 seconds
-                hideMsg();
-            }
+            socketRef.current.on("allusers", (info) => {
+                console.log(info.message)
+                
+                if(info.success){
+                    setUsers(info.data)
+                    // Reset Users form
+                    setUserId(null);
+                    setEmail('');
+                    setName('');
+                    setUsername('');
+                    setIsEdit(false);
+                    setTitle('Add User');
+                }                
+            });
+
+            socketRef.current.on("newUser", (info) => {
+                console.log(info.message);
+                if(info.success){
+                    socketRef.current.emit("users");
+                }
+            });
+
+            socketRef.current.on('editedUser', (info) => {
+                console.log(info.message)
+                if(info.success){
+                    socketRef.current.emit("users");
+                }
+            })
+
+            socketRef.current.on('deletedUser', (info) => {
+                console.log(info.message)
+                if(info.success){
+                    socketRef.current.emit("users");
+                }
+            })
         };
-
-        getUsers();
+        
+        initialSetup();
     }, []);
 
     // Hide success/error message after 5 seconds
@@ -55,29 +79,8 @@ function Users() {
     const addUserHandler = async (e) => {
         // Prevent default form submission
         e.preventDefault();
-        try {
-            // Send post request to backend by sending the data
-            const response = await axios.post(`${baseUrl}`, {username, name, email});
 
-            // Add new user and update users state
-            setUsers([...users, response.data.data]);
-
-            // Reset todo form
-            setEmail('');
-            setName('');
-            setUsername('');
-            setTitle('Add User');
-
-            // Show success message
-            setSuccessMsg(response.data.message);
-        } catch (error) {
-            console.log(error.response);
-            // Show error message
-            setErrorMsg(error.response.data.message);
-        } finally {
-            // Hide success/error message after 5 seconds
-            hideMsg();
-        }
+        socketRef.current.emit("createUser", {username, name, email});
     };
 
     // Edit user
@@ -95,65 +98,15 @@ function Users() {
     const updateUserHandler = async (e) => {
         // Prevent default form submission
         e.preventDefault();
-        try {
-            // Send put request to backend by sending User's data
-            const response = await axios.put(`${baseUrl}/${userId}`, {username, name, email});
-        
-            // Update user in Users state
-            const updatedUsers = users.map(user => {
-                if (user.id === userId) {
-                    user.username     = username;
-                    user.name         = name;
-                    user.email         = email;
-                }
-                return user;
-            });
-        
-            // Update todos state
-            setUsers(updatedUsers);
-        
-            // Reset todo form
-            setUsername('');
-            setName('');
-            setEmail('');
-            setTitle('Add User');
-            setUserId(null);
-            setIsEdit(false);
-        
-            // Show success message
-            setSuccessMsg(response.data.message);
-        } catch (error) {
-            console.log(error.response);
-            // Show error message
-            setErrorMsg(error.response.data.message);
-        } finally {
-            // Hide success/error message after 5 seconds
-            hideMsg();
-        }
+
+        socketRef.current.emit("updateUser", {userId,username, name, email});
     };
 
     // Delete User
-    const deleteUserHandler = async (id) => {
-        try {
-            // Send delete request to backend
-            const response      = await axios.delete(`${baseUrl}/${id}`);
+    const deleteUserHandler = async (userId) => {
+
+        socketRef.current.emit("deleteUser", {userId});
         
-            // Remove user from Users state
-            const filteredUsers = users.filter(user => user.id !== id);
-        
-            // Update Users state
-            setUsers(filteredUsers);
-        
-            // Show success message
-            setSuccessMsg(response.data.message);
-        } catch (error) {
-            console.log(error.response);
-            // Show error message
-            setErrorMsg(error.response.data.message);
-        } finally {
-            // Hide success/error message after 5 seconds
-            hideMsg();
-        }
     };
 
     // Submit handler

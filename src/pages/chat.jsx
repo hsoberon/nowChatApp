@@ -1,43 +1,67 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import useWebSocket from "react-use-websocket";
+import {useState, useEffect, useRef} from "react";
 import Messages from '../components/messages'; 
 import {Alert, Form, Row, Col, Button} from 'react-bootstrap';
+import io from "socket.io-client";
 
 function WSChat() {
-    const baseUrl                       = 'ws://127.0.0.1:8080';
+    const baseUrl                       = 'ws://localhost:5000';
     const [users, setUsers]             = useState([]);
+    const [chat, setChat]               = useState([]);
     const [userFrom, setUserFrom]       = useState(null);
     const [userTo, setUserTo]           = useState(null);
     const [successMsg, setSuccessMsg]   = useState(null);
     const [errorMsg, setErrorMsg]       = useState(null);
-
-    const { sendJsonMessage, lastJsonMessage } = useWebSocket(baseUrl, {
-        share: false,
-    });
+    const socketRef = useRef();
     
-    const connected = useMemo(() => {
-        sendJsonMessage({
-            type: "GET",
-            message: "Users",
-        });
-      }, [sendJsonMessage]);
+    // Fetch all users on page load or component mounted
+    useEffect(() => {
+
+        socketRef.current = io.connect(baseUrl);
+
+        
+        const initialSetup = async () => {
+            // Fetch all users
+            socketRef.current.emit("users");
+            
+
+            socketRef.current.on("allusers", (info) => {
+                console.log(info.message)
+                if(info.success){
+                    setUsers(info.data)
+                }
+            });
+
+            socketRef.current.on("messages", (info) => {
+                console.log(info.message)
+                if(info.success){
+                    setChat(info.data)
+                }
+            });
+
+            socketRef.current.on("newMessages", (info) => {
+                console.log(info.message)
+                if(info.success){
+                    console.log("new message from %s to %s", info.data.from_id, info.data.to_id)
+                    socketRef.current.emit("chat", {
+                        userFrom: info.data.from_id, 
+                        userTo: info.data.to_id
+                    });
+                }
+            });
+
+            
+
+        };
+        
+        initialSetup();
+    }, []);
 
     useEffect(() => {
-        console.log(connected);
-    }, [connected]);
-
-    useEffect(() => {
-        if(lastJsonMessage?.success){
-            if(lastJsonMessage.type === 'Users'){
-                setUsers(lastJsonMessage.data);
-                console.log('Users: ' + lastJsonMessage.data.length);
-            }
-        }else if(lastJsonMessage?.message){
-            //Error
-            setErrorMsg('ERROR:' + lastJsonMessage.message);
-            hideMsg();
+        if(userFrom && userTo){
+            console.log('Request from %s %s', userFrom, userTo);
+            socketRef.current.emit("chat", {userFrom, userTo});
         }
-    }, [lastJsonMessage]);
+    }, [userFrom, userTo])
 
     // Hide success/error message after 5 seconds
     const hideMsg = () => {
@@ -49,6 +73,7 @@ function WSChat() {
 
     const sendMessage = async (event) => {
         event.preventDefault();
+
         const from_id = event.target.from_id.value;
         const text = event.target.text.value;
         const to_id = (from_id === userFrom) ? userTo : userFrom;
@@ -65,11 +90,10 @@ function WSChat() {
             return;
         }
 
-        sendJsonMessage({
-            type: "SEND Message",
-            userFrom: from_id,
+        socketRef.current.emit("sendMessage", {
+            userFrom : from_id, 
             userTo: to_id,
-            message: text,
+            text: text,
         });
 
         //reset the text message field
@@ -145,7 +169,7 @@ function WSChat() {
                 </div>
             </div>
             {userFrom && userTo && 
-                <Messages userFrom={userFrom} userTo={userTo} onSuccess={setSuccessMsg} onError={setErrorMsg} hide={hideMsg}></Messages>
+                <Messages chat={chat} userFrom={userFrom} userTo={userTo} ></Messages>
             }
         </div>
     );
