@@ -4,7 +4,7 @@ import {Alert, Form, Row, Col, Button} from 'react-bootstrap';
 import io from "socket.io-client";
 
 function WSChat() {
-    const baseUrl                       = 'ws://localhost:5000';
+    const baseUrl                       = useRef(process.env.REACT_APP_WS_URL);
     const [users, setUsers]             = useState([]);
     const [chat, setChat]               = useState([]);
     const [userFrom, setUserFrom]       = useState(null);
@@ -16,7 +16,7 @@ function WSChat() {
     // Fetch all users on page load or component mounted
     useEffect(() => {
 
-        socketRef.current = io.connect(baseUrl);
+        socketRef.current = io.connect(baseUrl.current);
 
         
         const initialSetup = async () => {
@@ -125,7 +125,7 @@ function WSChat() {
                         <Form.Group as={Row} className="mt-3">
                             <Col md="12">
                                 <Form.Select className="mb-3" size="lg" id="first-user" name="from_id" onChange={e => setUserFrom(e.target.value)}>
-                                    <option disabled>Select the First User</option>
+                                    <option >Select the First User</option>
                                     {users.map((user, index) => (
                                         <option key={index} value={user.id}>{user.name}</option>
                                     ))}
@@ -149,7 +149,7 @@ function WSChat() {
                         <Form.Group as={Row} className="mt-3">
                             <Col md="12">
                                 <Form.Select className="mb-3" size="lg" id="second-user" name="from_id"  onChange={e => setUserTo(e.target.value)}>
-                                    <option disabled>Select the Second User</option>
+                                    <option >Select the Second User</option>
                                     {users.map((user, index) => (
                                         <option key={index} value={user.id}>{user.name}</option>
                                     ))}

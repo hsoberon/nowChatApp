@@ -5,19 +5,19 @@ import {Button} from 'react-bootstrap';
 const pc_config = {
 	iceServers: [
 	  // {
-	  //   urls: 'stun:[STUN_IP]:[PORT]',
-	  //   'credentials': '[YOR CREDENTIALS]',
-	  //   'username': '[USERNAME]'
+	  //   urls: process.env.REACT_APP_ICE_URLS,,
+	  //   'credentials': process.env.REACT_APP_ICE_CREDENTIALS,
+	  //   'username': process.env.REACT_APP_ICE_USERNAME,
 	  // },
 	  {
-		urls: "stun:stun.l.google.com:19302",
+		urls: process.env.REACT_APP_ICE_URLS,
 	  },
 	],
   };
   
 
 function Video() {
-    const baseUrl                       = 'ws://localhost:5000';
+    const baseUrl                       = process.env.REACT_APP_WS_URL
 	const [ me, setMe ] = useState("")
 	const [ user, setUser ] = useState("")
     const [ enableCamera, setEnableCamera ] = useState(false)

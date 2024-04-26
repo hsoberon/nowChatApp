@@ -1,11 +1,10 @@
 import {useState, useEffect, useRef} from "react";
-import Alert from 'react-bootstrap/Alert';
 import io from "socket.io-client";
 
 
 function Users() {
 
-    const baseUrl                       = 'ws://localhost:5000';
+    const baseUrl                       = useRef(process.env.REACT_APP_WS_URL)
     const [users, setUsers]             = useState([]);
     const [name, setName]               = useState('');
     const [email, setEmail]             = useState('');
@@ -13,14 +12,12 @@ function Users() {
     const [title, setTitle]             = useState('Add User');
     const [userId, setUserId]           = useState(null);
     const [isEdit, setIsEdit]           = useState(false);
-    const [successMsg, setSuccessMsg]   = useState(null);
-    const [errorMsg, setErrorMsg]       = useState(null);
     const socketRef = useRef();
 
     // Fetch all users on page load or component mounted
     useEffect(() => {
 
-        socketRef.current = io.connect(baseUrl);
+        socketRef.current = io.connect(baseUrl.current);
 
         
         const initialSetup = async () => {
@@ -67,13 +64,6 @@ function Users() {
         initialSetup();
     }, []);
 
-    // Hide success/error message after 5 seconds
-    const hideMsg = () => {
-        setTimeout(() => {
-            setSuccessMsg(null);
-            setErrorMsg(null);
-        }, 5000);
-    };
 
     // Add new user
     const addUserHandler = async (e) => {
@@ -133,18 +123,6 @@ function Users() {
             <div className="container pt-5 text-center">
                 <h1>NowChat App</h1>
                 <p>All the users in the app</p>
-                <div className="alert-wrapper">
-                    {successMsg &&
-                        <Alert variant="success" dismissible>
-                            {successMsg}
-                        </Alert>
-                    }
-                    {errorMsg &&
-                        <Alert variant="danger" dismissible>
-                            {errorMsg}
-                        </Alert>
-                    }
-                </div>
             </div>
             <div className="row">
                 <div className="col">
